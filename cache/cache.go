@@ -6,11 +6,13 @@ import (
 	"github.com/peter-mount/go-kernel/util/task"
 	"github.com/peter-mount/home-automation/mq"
 	"log"
+	"sort"
 	"strings"
 	"sync"
 	"time"
 )
 
+// Cache implements a service which stores the available devices and their current states
 type Cache struct {
 	mq        *mq.MQ        `kernel:"inject"`
 	queueName *mq.Queue     `kernel:"config,bridgeQueue"`
@@ -42,10 +44,10 @@ func (c *Cache) Start() error {
 
 // refresh requests data from zigbee2mqtt.
 // It's done as a worker task as it's only requested once the system is up and running
-func (b *Cache) refresh(_ context.Context) error {
+func (c *Cache) refresh(_ context.Context) error {
 	log.Println("Requesting state from zigbee2mqtt")
 
-	_ = b.Send("zigbee2mqtt/bridge/config/devices/get", "")
+	_ = c.Send("zigbee2mqtt/bridge/config/devices/get", "")
 
 	return nil
 }
@@ -99,7 +101,7 @@ func (c *Cache) updateCache(ctx context.Context) error {
 
 // Send a message to zigbee2mqtt.
 // []byte and string are sent as-is otherwise the message is marshaled into JSON before sending.
-func (b *Cache) Send(device string, msg interface{}) error {
+func (c *Cache) Send(device string, msg interface{}) error {
 	var data []byte
 
 	if b, ok := msg.([]byte); ok {
@@ -114,5 +116,46 @@ func (b *Cache) Send(device string, msg interface{}) error {
 		data = b
 	}
 
-	return b.publisher.Post(device, data, nil, time.Now())
+	return c.publisher.Post(device, data, nil, time.Now())
+}
+
+func (c *Cache) GetDevice(name string) *Device {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	//name = b.publisher.EncodeKey(name)
+	if strings.HasPrefix(name, "zigbee2mqtt/") {
+		name = name[12:]
+	}
+	log.Println(name)
+	if d, exists := c.devices[name]; exists {
+		return d
+	}
+	return nil
+}
+
+func (c *Cache) addDevice(d *Device) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	if d.FriendlyName != "" {
+		c.devices[d.FriendlyName] = d
+	}
+}
+
+// GetDevices returns a list of devices
+func (c *Cache) GetDevices() []*Device {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	var r []*Device
+	for _, v := range c.devices {
+		r = append(r, v)
+	}
+
+	sort.SliceStable(r, func(i, j int) bool {
+		return r[i].FriendlyName < r[j].FriendlyName
+	})
+
+	return r
 }
