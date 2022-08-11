@@ -3,13 +3,30 @@ package automation
 import (
 	"context"
 	"github.com/peter-mount/go-kernel/util/task"
+	"github.com/peter-mount/home-automation/model"
 	"github.com/peter-mount/home-automation/mq"
 	"github.com/peter-mount/home-automation/state"
 	"log"
 	"strings"
+	"sync"
 )
 
-func (s *Service) processMqMessage(ctx context.Context) error {
+type Zigbee struct {
+	mq        *mq.MQ         `kernel:"inject"`
+	states    *state.Service `kernel:"inject"`
+	house     *model.Service `kernel:"inject"`
+	queueName *mq.Queue      `kernel:"config,automationQueue"`
+	modelFile *string        `kernel:"config,modelFile"`
+	worker    task.Queue     `kernel:"worker"`
+	mutex     sync.Mutex
+}
+
+func (s *Zigbee) Start() error {
+	return s.mq.ConsumeTask(s.queueName, "automation", mq.Guard(s.processZigbeeMessage))
+}
+
+// processZigbeeMessage processes a message received from zigbee2mqtt
+func (s *Zigbee) processZigbeeMessage(ctx context.Context) error {
 	/*// Queue inbound message, place at a priority so actions take precedence
 	    s.worker.AddPriorityTask(500, task.Of(s.processImpl).WithContext(ctx, mq.DeliveryKey))
 	    return nil
@@ -46,7 +63,7 @@ func (s *Service) processMqMessage(ctx context.Context) error {
 		previousState = newState
 	}
 
-	s.worker.AddTask(task.Of(s.scanAutomations).
+	s.worker.AddTask(task.Of(s.house.ScanAutomations).
 		WithValue(mq.DeliveryKey, msg).
 		WithValue(state.ServiceKey, s.states).
 		WithValue(state.StateKey, newState).

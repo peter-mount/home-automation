@@ -3,14 +3,14 @@ package api
 import "github.com/peter-mount/go-kernel/rest"
 
 func (s *Service) getScenes(r *rest.Rest) error {
-	r.Status(200).JSON().Value(s.model.GetModel().Scene)
+	r.Status(200).JSON().Value(s.house.GetModel().Scene)
 	return nil
 }
 
 func (s *Service) getScene(r *rest.Rest) error {
 	sceneName := r.Var("scene")
 
-	scene := s.model.GetModel().GetScene(sceneName)
+	scene := s.house.GetModel().GetScene(sceneName)
 	if scene == nil {
 		r.Status(404)
 	} else {
@@ -23,7 +23,7 @@ func (s *Service) getScene(r *rest.Rest) error {
 func (s *Service) activateScene(r *rest.Rest) error {
 	sceneName := r.Var("scene")
 
-	scene := s.model.GetModel().GetScene(sceneName)
+	scene := s.house.GetModel().GetScene(sceneName)
 	if scene != nil {
 		for deviceName, action := range scene.Devices {
 			if _, err := s.activateDeviceImpl(deviceName, action); err != nil {

@@ -3,18 +3,18 @@ package api
 import (
 	"encoding/json"
 	"github.com/peter-mount/go-kernel/rest"
-	"github.com/peter-mount/home-automation"
 	"github.com/peter-mount/home-automation/cache"
+	"github.com/peter-mount/home-automation/model"
 	"github.com/peter-mount/home-automation/mq"
 	"time"
 )
 
 type Service struct {
-	mq        *mq.MQ              `kernel:"inject"`
-	publisher *mq.Publisher       `kernel:"config,apiPublisher"`
-	model     *automation.Service `kernel:"inject"`
-	rest      *rest.Server        `kernel:"inject"`
-	cache     *cache.Cache        `kernel:"inject"`
+	mq        *mq.MQ         `kernel:"inject"`
+	publisher *mq.Publisher  `kernel:"config,apiPublisher"`
+	house     *model.Service `kernel:"inject"`
+	rest      *rest.Server   `kernel:"inject"`
+	cache     *cache.Cache   `kernel:"inject"`
 }
 
 func (s *Service) Start() error {
@@ -61,9 +61,4 @@ func (s *Service) Send(device string, msg interface{}) error {
 	}
 
 	return s.publisher.Post(device, data, nil, time.Now())
-}
-
-func (s *Service) getHouse(r *rest.Rest) error {
-	r.Status(200).JSON().Value(s.model.GetModel())
-	return nil
 }
