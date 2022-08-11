@@ -57,7 +57,7 @@ func (s *Service) setCacheState(r *rest.Rest) error {
 		stateUpdate.SetState(r.Var("val"))
 		status.Data = s
 
-		return s.Send(device+".set", stateUpdate)
+		return s.publisher.PublishApi(device+".set", stateUpdate)
 	})
 }
 
@@ -75,6 +75,6 @@ func (s *Service) setCacheStateGeneric(r *rest.Rest) error {
 			return err
 		}
 
-		return s.Send(device+".set", payload)
+		return s.publisher.PublishApi(device+".set", payload)
 	})
 }

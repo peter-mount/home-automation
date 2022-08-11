@@ -46,7 +46,7 @@ func (s *Service) activateDeviceImpl(deviceName, action string) (bool, error) {
 		actions, ok := device.Action[action]
 		if ok {
 			for _, action := range actions {
-				err := s.Send(deviceName+".set", action)
+				err := s.publisher.PublishApi(deviceName+".set", action)
 				if err != nil {
 					return false, err
 				}

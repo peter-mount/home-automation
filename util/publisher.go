@@ -1,19 +1,19 @@
 package util
 
 import (
+	"encoding/json"
 	"github.com/peter-mount/home-automation/mq"
-	"log"
-	"strings"
+	"time"
 )
 
 // Publisher handles the publishing of messages back to RabbitMQ
 type Publisher struct {
-	mq              *mq.MQ        `kernel:"inject"`
-	zigbeePublisher *mq.Publisher `kernel:"config,automationPublisher"`
+	mq        *mq.MQ        `kernel:"inject"`
+	publisher *mq.Publisher `kernel:"config,automationPublisher"`
 }
 
 func (s *Publisher) Start() error {
-	err := s.mq.AttachPublisher(s.zigbeePublisher)
+	err := s.mq.AttachPublisher(s.publisher)
 	if err != nil {
 		return err
 	}
@@ -21,19 +21,27 @@ func (s *Publisher) Start() error {
 	return nil
 }
 
+// PublishJSON sends the payload as a JSON object using the supplied routing key
 func (s *Publisher) PublishJSON(key string, payload interface{}) error {
-	var publisher *mq.Publisher
+	return s.publisher.PublishJSON(key, payload)
+}
 
-	// Resolve which publisher to use
-	if strings.HasPrefix(key, "zigbee2mqtt/") {
-		publisher = s.zigbeePublisher
+// PublishApi sends the payload using the supplied routing key.
+// []byte and string are sent as-is otherwise the message is marshaled into JSON before sending.
+func (s *Publisher) PublishApi(device string, msg interface{}) error {
+	var data []byte
+
+	if b, ok := msg.([]byte); ok {
+		data = b
+	} else if s, ok := msg.(string); ok {
+		data = []byte(s)
+	} else {
+		b, err := json.Marshal(msg)
+		if err != nil {
+			return err
+		}
+		data = b
 	}
 
-	if publisher != nil {
-		return publisher.PublishJSON(key, payload)
-	}
-
-	// Should not happen unless device is invalid
-	log.Printf("WARN: Publish event to %s but no publisher defined", key)
-	return nil
+	return s.publisher.Post(device, data, nil, time.Now())
 }
