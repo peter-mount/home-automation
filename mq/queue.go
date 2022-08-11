@@ -5,6 +5,7 @@ import (
 	"log"
 )
 
+// Queue represents the configuration for declaring a queue in RabbitMQ
 type Queue struct {
 	Name       string    `yaml:"name"`
 	Binding    []Binding `yaml:"binding"`
@@ -14,6 +15,7 @@ type Queue struct {
 	mq         *MQ
 }
 
+// Binding defines a binding for a Queue
 type Binding struct {
 	Topic string `yaml:"topic"`
 	Key   string `yaml:"key"`

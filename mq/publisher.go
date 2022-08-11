@@ -8,27 +8,25 @@ import (
 	"time"
 )
 
+// Publisher represents the configuration for how to send messages to RabbitMQ
 type Publisher struct {
-	Exchange  string            `yaml:"exchange"`    // Exchange to submit to
-	Key       string            `yaml:"DeliveryKey"` // Key to use for SimplePublish
-	Mandatory bool              `yaml:"mandatory"`   // Publish mode
-	Immediate bool              `yaml:"immediate"`   // Publish mode
-	Replace   map[string]string `yaml:"replace"`     // Replace prefix table
-	Ignore    []string          `yaml:"ignore"`      // Ignore prefixes
-	Debug     bool              `yaml:"debug"`       // Debug mode
-	Disabled  bool              `yaml:"disabled"`    // Publish disabled
+	Exchange  string            `yaml:"exchange"`  // Exchange to submit to
+	Mandatory bool              `yaml:"mandatory"` // Publish mode
+	Immediate bool              `yaml:"immediate"` // Publish mode
+	Replace   map[string]string `yaml:"replace"`   // Replace prefix table
+	Ignore    []string          `yaml:"ignore"`    // Ignore prefixes
+	Debug     bool              `yaml:"debug"`     // Debug mode
+	Disabled  bool              `yaml:"disabled"`  // Publish disabled
 	channel   *amqp.Channel
 	mq        *MQ
 }
 
-func (p *Publisher) SimplePublish(msg []byte) error {
-	return p.Post(p.Key, msg, nil, time.Now())
-}
-
+// Publish sends a raw message with the specified routingKey
 func (p *Publisher) Publish(key string, msg []byte) error {
 	return p.Post(key, msg, nil, time.Now())
 }
 
+// PublishJSON sends a JSON message with the specified routingKey
 func (p *Publisher) PublishJSON(key string, payload interface{}) error {
 	msg, err := json.Marshal(payload)
 	if err == nil {
@@ -37,6 +35,28 @@ func (p *Publisher) PublishJSON(key string, payload interface{}) error {
 	return err
 }
 
+// PublishApi sends the payload using the supplied routing key.
+// []byte and string are sent as-is otherwise the message is marshaled into JSON before sending.
+func (p *Publisher) PublishApi(key string, msg interface{}) error {
+	var data []byte
+
+	if b, ok := msg.([]byte); ok {
+		data = b
+	} else if s, ok := msg.(string); ok {
+		data = []byte(s)
+	} else {
+		b, err := json.Marshal(msg)
+		if err != nil {
+			return err
+		}
+		data = b
+	}
+
+	return p.Publish(key, data)
+}
+
+// Post is the underlying function used by the Publish functions.
+// It sends the actual message to RabbitMQ.
 func (p *Publisher) Post(key string, body []byte, headers amqp.Table, timestamp time.Time) error {
 
 	key = p.EncodeKey(key)

@@ -28,7 +28,7 @@ func (c *Cache) logDevice(l Log) {
 		device := msg
 		c.worker.AddTask(func(_ context.Context) error {
 			c.addDevice(device)
-			return c.Send("zigbee2mqtt."+device.FriendlyName+".get", "{}")
+			return c.publisher.PublishApi("zigbee2mqtt."+device.FriendlyName+".get", "{}")
 		})
 	}
 }

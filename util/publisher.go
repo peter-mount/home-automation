@@ -1,12 +1,12 @@
 package util
 
 import (
-	"encoding/json"
 	"github.com/peter-mount/home-automation/mq"
-	"time"
 )
 
-// Publisher handles the publishing of messages back to RabbitMQ
+// Publisher handles the publishing of messages back to RabbitMQ using the
+// config defined under the "automationPublisher" key.
+// Most services will use this publisher for everything sent to RabbitMQ.
 type Publisher struct {
 	mq        *mq.MQ        `kernel:"inject"`
 	publisher *mq.Publisher `kernel:"config,automationPublisher"`
@@ -29,19 +29,5 @@ func (s *Publisher) PublishJSON(key string, payload interface{}) error {
 // PublishApi sends the payload using the supplied routing key.
 // []byte and string are sent as-is otherwise the message is marshaled into JSON before sending.
 func (s *Publisher) PublishApi(device string, msg interface{}) error {
-	var data []byte
-
-	if b, ok := msg.([]byte); ok {
-		data = b
-	} else if s, ok := msg.(string); ok {
-		data = []byte(s)
-	} else {
-		b, err := json.Marshal(msg)
-		if err != nil {
-			return err
-		}
-		data = b
-	}
-
-	return s.publisher.Post(device, data, nil, time.Now())
+	return s.publisher.PublishApi(device, msg)
 }

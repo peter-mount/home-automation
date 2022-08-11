@@ -9,7 +9,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"time"
 )
 
 // Cache implements a service which stores the available devices and their current states
@@ -47,7 +46,7 @@ func (c *Cache) Start() error {
 func (c *Cache) refresh(_ context.Context) error {
 	log.Println("Requesting state from zigbee2mqtt")
 
-	_ = c.Send("zigbee2mqtt/bridge/config/devices/get", "")
+	_ = c.publisher.PublishApi("zigbee2mqtt/bridge/config/devices/get", "")
 
 	return nil
 }
@@ -89,34 +88,11 @@ func (c *Cache) updateCache(ctx context.Context) error {
 			err := json.Unmarshal(msg.Body, s)
 			if err == nil {
 				c.SetState(msg.RoutingKey, s)
-				/*if !exists {
-				  log.Printf("New device %q %s", msg.RoutingKey, string(msg.Body))
-				}*/
 			}
 		}
 	}
 
 	return nil
-}
-
-// Send a message to zigbee2mqtt.
-// []byte and string are sent as-is otherwise the message is marshaled into JSON before sending.
-func (c *Cache) Send(device string, msg interface{}) error {
-	var data []byte
-
-	if b, ok := msg.([]byte); ok {
-		data = b
-	} else if s, ok := msg.(string); ok {
-		data = []byte(s)
-	} else {
-		b, err := json.Marshal(msg)
-		if err != nil {
-			return err
-		}
-		data = b
-	}
-
-	return c.publisher.Post(device, data, nil, time.Now())
 }
 
 func (c *Cache) GetDevice(name string) *Device {
