@@ -2,7 +2,7 @@ package model
 
 import (
 	"context"
-	"github.com/peter-mount/home-automation/state"
+	"github.com/peter-mount/home-automation/automation/state"
 	"strings"
 )
 

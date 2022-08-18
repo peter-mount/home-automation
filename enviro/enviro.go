@@ -3,21 +3,21 @@ package enviro
 import (
 	"context"
 	"encoding/json"
-	"github.com/peter-mount/home-automation/graphite"
-	"github.com/peter-mount/home-automation/mq"
+	"github.com/peter-mount/home-automation/util/graphite"
+	mq2 "github.com/peter-mount/home-automation/util/mq"
 	"log"
 	"time"
 )
 
 type Enviro struct {
-	mq        *mq.MQ             `kernel:"inject"`
-	queueName *mq.Queue          `kernel:"config,enviroQueue"`
+	mq        *mq2.MQ            `kernel:"inject"`
+	queueName *mq2.Queue         `kernel:"config,enviroQueue"`
 	graphite  *graphite.Graphite `kernel:"inject"`
 }
 
 func (m *Enviro) Start() error {
 
-	err := m.mq.ConsumeTask(m.queueName, "graphite", mq.Guard(m.consume))
+	err := m.mq.ConsumeTask(m.queueName, "graphite", mq2.Guard(m.consume))
 	if err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func (m *Enviro) Start() error {
 }
 
 func (m *Enviro) consume(ctx context.Context) error {
-	body := mq.Delivery(ctx)
+	body := mq2.Delivery(ctx)
 
 	data := make(map[string]interface{})
 	err := json.Unmarshal(body.Body, &data)

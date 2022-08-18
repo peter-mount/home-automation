@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/peter-mount/go-kernel/util/task"
-	"github.com/peter-mount/home-automation/mq"
+	mq2 "github.com/peter-mount/home-automation/util/mq"
 	"log"
 	"sort"
 	"strings"
@@ -13,10 +13,10 @@ import (
 
 // Cache implements a service which stores the available devices and their current states
 type Cache struct {
-	mq        *mq.MQ        `kernel:"inject"`
-	queueName *mq.Queue     `kernel:"config,bridgeQueue"`
-	publisher *mq.Publisher `kernel:"config,bridgePublisher"`
-	worker    task.Queue    `kernel:"worker"`
+	mq        *mq2.MQ        `kernel:"inject"`
+	queueName *mq2.Queue     `kernel:"config,bridgeQueue"`
+	publisher *mq2.Publisher `kernel:"config,bridgePublisher"`
+	worker    task.Queue     `kernel:"worker"`
 	mutex     sync.Mutex
 	devices   map[string]*Device // Map of devices
 	state     map[string]*State  // Map of current state
@@ -31,7 +31,7 @@ func (c *Cache) Start() error {
 		return err
 	}
 
-	err = c.mq.ConsumeTask(c.queueName, "graphite", mq.Guard(c.updateCache))
+	err = c.mq.ConsumeTask(c.queueName, "graphite", mq2.Guard(c.updateCache))
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (c *Cache) SetState(device string, state *State) {
 
 func (c *Cache) updateCache(ctx context.Context) error {
 
-	msg := mq.Delivery(ctx)
+	msg := mq2.Delivery(ctx)
 	switch msg.RoutingKey {
 	case "zigbee2mqtt.bridge.log":
 		c.log(msg)

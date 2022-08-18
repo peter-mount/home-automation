@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/peter-mount/home-automation/mq"
+	mq2 "github.com/peter-mount/home-automation/util/mq"
 	"log"
 	"reflect"
 	"strconv"
@@ -15,9 +15,9 @@ import (
 // Graphite handles receiving events from rabbit and logging the responses to graphite
 // via RabbitMQ.
 type Graphite struct {
-	mq        *mq.MQ        `kernel:"inject"`
-	queueName *mq.Queue     `kernel:"config,graphiteQueue"`
-	publisher *mq.Publisher `kernel:"config,graphitePublisher"`
+	mq        *mq2.MQ        `kernel:"inject"`
+	queueName *mq2.Queue     `kernel:"config,graphiteQueue"`
+	publisher *mq2.Publisher `kernel:"config,graphitePublisher"`
 }
 
 func (m *Graphite) Start() error {
@@ -32,7 +32,7 @@ func (m *Graphite) Start() error {
 
 // logMessage receives a message from rabbitmq
 func (m *Graphite) logMessage(ctx context.Context) error {
-	body := mq.Delivery(ctx)
+	body := mq2.Delivery(ctx)
 
 	// Ignore bridge specific messages as this service deals with devices
 	if strings.HasPrefix(body.RoutingKey, "zigbee2mqtt.bridge") {

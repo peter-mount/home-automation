@@ -1,15 +1,15 @@
 package util
 
 import (
-	"github.com/peter-mount/home-automation/mq"
+	mq2 "github.com/peter-mount/home-automation/util/mq"
 )
 
 // Publisher handles the publishing of messages back to RabbitMQ using the
 // config defined under the "automationPublisher" key.
 // Most services will use this publisher for everything sent to RabbitMQ.
 type Publisher struct {
-	mq        *mq.MQ        `kernel:"inject"`
-	publisher *mq.Publisher `kernel:"config,automationPublisher"`
+	mq        *mq2.MQ        `kernel:"inject"`
+	publisher *mq2.Publisher `kernel:"config,automationPublisher"`
 }
 
 func (s *Publisher) Start() error {

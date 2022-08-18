@@ -4,7 +4,7 @@ import (
 	"github.com/peter-mount/go-kernel"
 	"github.com/peter-mount/go-kernel/rest"
 	"github.com/peter-mount/home-automation/geiger"
-	"github.com/peter-mount/home-automation/graphite"
+	"github.com/peter-mount/home-automation/util/graphite"
 	"log"
 )
 

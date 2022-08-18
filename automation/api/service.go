@@ -2,10 +2,10 @@ package api
 
 import (
 	"github.com/peter-mount/go-kernel/rest"
-	"github.com/peter-mount/home-automation/cache"
-	"github.com/peter-mount/home-automation/model"
-	"github.com/peter-mount/home-automation/mq"
+	"github.com/peter-mount/home-automation/automation/cache"
+	"github.com/peter-mount/home-automation/automation/model"
 	automation "github.com/peter-mount/home-automation/util"
+	"github.com/peter-mount/home-automation/util/mq"
 )
 
 type Service struct {

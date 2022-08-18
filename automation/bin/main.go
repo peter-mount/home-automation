@@ -4,8 +4,8 @@ import (
 	"github.com/peter-mount/go-kernel"
 	"github.com/peter-mount/go-kernel/rest"
 	"github.com/peter-mount/home-automation"
-	"github.com/peter-mount/home-automation/api"
-	"github.com/peter-mount/home-automation/graphite"
+	"github.com/peter-mount/home-automation/automation/api"
+	"github.com/peter-mount/home-automation/util/graphite"
 	"log"
 )
 

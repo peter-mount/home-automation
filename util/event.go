@@ -1,23 +1,23 @@
 package util
 
 import (
-	"github.com/peter-mount/home-automation/cache"
-	"github.com/peter-mount/home-automation/mq"
+	cache2 "github.com/peter-mount/home-automation/automation/cache"
+	"github.com/peter-mount/home-automation/util/mq"
 	"time"
 )
 
 // Event issued to RabbitMQ with data on what's happened to a device.
 // This is also used as the response to get requests on a device
 type Event struct {
-	Name      string        `json:"name,omitempty"`
-	Routing   string        `json:"routing,omitempty"`
-	Type      string        `json:"type,omitempty"`
-	Timestamp time.Time     `json:"timestamp,omitempty"`
-	State     *cache.State  `json:"state,omitempty"`
-	Device    *cache.Device `json:"device,omitempty"`
+	Name      string         `json:"name,omitempty"`
+	Routing   string         `json:"routing,omitempty"`
+	Type      string         `json:"type,omitempty"`
+	Timestamp time.Time      `json:"timestamp,omitempty"`
+	State     *cache2.State  `json:"state,omitempty"`
+	Device    *cache2.Device `json:"device,omitempty"`
 }
 
-func NewEvent(name, eventType string, state *cache.State, device *cache.Device) *Event {
+func NewEvent(name, eventType string, state *cache2.State, device *cache2.Device) *Event {
 	var ts time.Time
 
 	if state != nil && state.LastSeen != nil && !state.LastSeen.IsZero() {

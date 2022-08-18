@@ -4,12 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/peter-mount/go-kernel/cron"
+	"github.com/peter-mount/home-automation/util/graphite"
+	"github.com/peter-mount/home-automation/util/mq"
 	"go.bug.st/serial"
 	"time"
-)
-import (
-	"github.com/peter-mount/home-automation/graphite"
-	"github.com/peter-mount/home-automation/mq"
 )
 
 type Geiger struct {

@@ -1,6 +1,8 @@
 package model
 
-import "github.com/peter-mount/home-automation/state"
+import (
+	"github.com/peter-mount/home-automation/automation/state"
+)
 
 type Device struct {
 	Description string                    `yaml:"description"`
