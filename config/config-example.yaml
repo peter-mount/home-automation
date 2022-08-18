@@ -1,0 +1,60 @@
+# This is an example of the config.yaml file needed by the applications.
+# this file can be shared between all of them.
+# It's usually installed in the /usr/local/etc direction on the host Raspberry PI.
+
+# ========================================
+# Common to all applications
+
+# Rabbit MQ config
+# Make certain the amqp url is correct for your RabbitMQ instance
+mq:
+  url: amqp://user:password@127.0.0.1
+  connectionName: "House Automation Dev"
+  product: "Area51 House Automation"
+  version: "0.2"
+
+# Publisher used to publish metrics to Graphite
+graphitePublisher:
+  exchange: "graphite"
+  # Set debug to true for message payloads to be logged to the console
+  debug: false
+  # Set disabled to true to prevent metrics to be published to RabbitMQ
+  disabled: false
+  # Routing key replacement rules
+  replace:
+    "enviro.front-urban": "home.drive.urban"
+    "enviro.front-weather": "home.garden.patio"
+    "zigbee2mqtt.living.room": "house.ground.livingRoom"
+    "zigbee2mqtt.kitchen": "house.ground.kitchen"
+    "zigbee2mqtt.bedroom": "house.upstairs.bedroom"
+    "zigbee2mqtt.bathroom": "house.upstairs.bathroom"
+    "zigbee2mqtt.upstairs": "house.upstairs"
+    "zigbee2mqtt.stairs": "house.stairs"
+  # Ignore keys with these prefixes, checked after the Replacement rules have been applied
+  ignore:
+    - "zigbee2mqtt"
+    - "enviro"
+
+# ========================================
+# geiger-counter configuration
+
+# Serial port hosting the Geiger counter
+geigerPort: "/dev/ttyUSB0"
+
+# Metric prefix for the counter
+geigerPrefix: "home.house.ground.kitchen.geiger"
+
+# ========================================
+# pimoroni-enviro
+
+# Queue used to receive events from MQTT
+enviroQueue:
+  name: "house.pimoroni.enviro"
+  durable: true
+  binding:
+    # Messages from Pimoroni Enviro sensors have routing keys/topics beginning with enviro
+    - topic: "amq.topic"
+      key: "enviro.#"
+    # Messages from my own PicoW based sensors use the same format but have keys/topics beginning with home
+    - topic: "amq.topic"
+      key: "home.#"
