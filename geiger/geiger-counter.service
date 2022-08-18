@@ -1,0 +1,15 @@
+[Unit]
+Description=geiger-counter
+After=network.target rabbitmq-server.service
+
+[Service]
+ExecStart=/usr/local/bin/geiger-counter -config /usr/local/etc/config.yaml -rest-port 8088
+WorkingDirectory=/tmp
+StandardOutput=inherit
+#StandardOutput=null
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
