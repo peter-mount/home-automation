@@ -43,3 +43,4 @@ I suspect you might be able to get away with a 1GB or 2GB safely.
 3. The Pimoroni Enviro-Weather PicoW board's [firmware](https://github.com/pimoroni/enviro) currently does not support the Rain Gauge. I've made modifications
    to its firmware. I'm intending to clean that code up or rewrite it to my own PicoW firmware.
 
+[home-automation](https://github.com/peter-mount/home-automation) © 2022 by [Peter Mount](https://github.com/peter-mount) is licensed under Attribution-NonCommercial-ShareAlike 4.0 International
