@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/peter-mount/go-kernel/cron"
 	"go.bug.st/serial"
-	"log"
 	"time"
 )
 import (
@@ -43,12 +42,12 @@ func (m *Geiger) Start() error {
 
 func (m *Geiger) sendCmd(cmd string, len int) ([]byte, error) {
 	c := fmt.Sprintf("<%s>>%c", cmd, 13)
-	log.Printf("sending %q", c)
+	//log.Printf("sending %q", c)
 	n, err := m.port.Write([]byte(c))
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Sent %d", n)
+	//log.Printf("Sent %d", n)
 
 	time.Sleep(time.Millisecond * 250)
 
@@ -56,14 +55,14 @@ func (m *Geiger) sendCmd(cmd string, len int) ([]byte, error) {
 		return nil, nil
 	}
 
-	log.Printf("Reading %d", len)
+	//log.Printf("Reading %d", len)
 	buf := make([]byte, len)
 
 	n, err = m.port.Read(buf)
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Read %d/%d", n, len)
+	//log.Printf("Read %d/%d", n, len)
 
 	if n < len {
 		return nil, fmt.Errorf("expected %d got %d (%v)", len, n, buf)
@@ -73,7 +72,7 @@ func (m *Geiger) sendCmd(cmd string, len int) ([]byte, error) {
 }
 
 func (m *Geiger) getStats(ctx context.Context) error {
-	log.Println("Getting data")
+	//log.Println("Getting data")
 
 	now := time.Now().UTC()
 
