@@ -3,17 +3,16 @@ package main
 import (
 	"github.com/peter-mount/go-kernel"
 	"github.com/peter-mount/go-kernel/rest"
-	"github.com/peter-mount/home-automation"
-	"github.com/peter-mount/home-automation/api"
+	"github.com/peter-mount/home-automation/enviro"
 	"github.com/peter-mount/home-automation/graphite"
 	"log"
 )
 
+// main standalone app for developing the graphite population
 func main() {
 	err := kernel.Launch(
 		&graphite.Graphite{},
-		&automation.Zigbee{},
-		&api.Service{},
+		&enviro.Enviro{},
 		&rest.Server{},
 	)
 	if err != nil {
