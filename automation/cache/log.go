@@ -3,7 +3,7 @@ package cache
 import (
 	"context"
 	"encoding/json"
-	"github.com/streadway/amqp"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Log struct {
