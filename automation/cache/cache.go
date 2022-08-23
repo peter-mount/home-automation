@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"encoding/json"
+	"github.com/peter-mount/go-kernel"
 	"github.com/peter-mount/go-kernel/util/task"
 	mq2 "github.com/peter-mount/home-automation/util/mq"
 	"log"
@@ -12,7 +13,18 @@ import (
 )
 
 // Cache implements a service which stores the available devices and their current states
-type Cache struct {
+type Cache interface {
+	GetState(device string) (*State, bool)
+	SetState(device string, state *State)
+	GetDevice(name string) *Device
+	GetDevices() []*Device
+}
+
+func init() {
+	kernel.RegisterAPI((*Cache)(nil), &cache{})
+}
+
+type cache struct {
 	mq        *mq2.MQ        `kernel:"inject"`
 	queueName *mq2.Queue     `kernel:"config,bridgeQueue"`
 	publisher *mq2.Publisher `kernel:"config,bridgePublisher"`
@@ -22,7 +34,7 @@ type Cache struct {
 	state     map[string]*State  // Map of current state
 }
 
-func (c *Cache) Start() error {
+func (c *cache) Start() error {
 	c.devices = map[string]*Device{}
 	c.state = map[string]*State{}
 
@@ -43,7 +55,7 @@ func (c *Cache) Start() error {
 
 // refresh requests data from zigbee2mqtt.
 // It's done as a worker task as it's only requested once the system is up and running
-func (c *Cache) refresh(_ context.Context) error {
+func (c *cache) refresh(_ context.Context) error {
 	log.Println("Requesting state from zigbee2mqtt")
 
 	_ = c.publisher.PublishApi("zigbee2mqtt/bridge/config/devices/get", "")
@@ -51,7 +63,7 @@ func (c *Cache) refresh(_ context.Context) error {
 	return nil
 }
 
-func (c *Cache) GetState(device string) (*State, bool) {
+func (c *cache) GetState(device string) (*State, bool) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	device = c.publisher.EncodeKey(device)
@@ -62,14 +74,14 @@ func (c *Cache) GetState(device string) (*State, bool) {
 	return s, exists
 }
 
-func (c *Cache) SetState(device string, state *State) {
+func (c *cache) SetState(device string, state *State) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	device = c.publisher.EncodeKey(device)
 	c.state[device] = state
 }
 
-func (c *Cache) updateCache(ctx context.Context) error {
+func (c *cache) updateCache(ctx context.Context) error {
 
 	msg := mq2.Delivery(ctx)
 	switch msg.RoutingKey {
@@ -95,7 +107,7 @@ func (c *Cache) updateCache(ctx context.Context) error {
 	return nil
 }
 
-func (c *Cache) GetDevice(name string) *Device {
+func (c *cache) GetDevice(name string) *Device {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -110,7 +122,7 @@ func (c *Cache) GetDevice(name string) *Device {
 	return nil
 }
 
-func (c *Cache) addDevice(d *Device) {
+func (c *cache) addDevice(d *Device) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -120,7 +132,7 @@ func (c *Cache) addDevice(d *Device) {
 }
 
 // GetDevices returns a list of devices
-func (c *Cache) GetDevices() []*Device {
+func (c *cache) GetDevices() []*Device {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 

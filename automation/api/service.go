@@ -13,7 +13,7 @@ type Service struct {
 	publisher *automation.Publisher `kernel:"inject"`
 	house     model.Service         `kernel:"inject"`
 	rest      *rest.Server          `kernel:"inject"`
-	cache     *cache.Cache          `kernel:"inject"`
+	cache     cache.Cache           `kernel:"inject"`
 }
 
 func (s *Service) Start() error {
