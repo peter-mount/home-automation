@@ -2,7 +2,6 @@ package state
 
 import (
 	"github.com/peter-mount/go-kernel"
-	"log"
 	"sync"
 )
 
@@ -32,7 +31,6 @@ type service struct {
 }
 
 func (s *service) Start() error {
-	log.Println("*** START ***")
 	s.states = map[string]*State{}
 	s.globals = map[string]string{}
 	return nil
