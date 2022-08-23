@@ -14,12 +14,12 @@ import (
 // Zigbee service listens for messages from Zigbee2MQTT and passes them to the house model to see what actions
 // should be performed
 type Zigbee struct {
-	mq        *mq.MQ         `kernel:"inject"`
-	states    state.Service  `kernel:"inject"`
-	house     *model.Service `kernel:"inject"`
-	queueName *mq.Queue      `kernel:"config,automationQueue"`
-	modelFile *string        `kernel:"config,modelFile"`
-	worker    task.Queue     `kernel:"worker"`
+	mq        *mq.MQ        `kernel:"inject"`
+	states    state.Service `kernel:"inject"`
+	house     model.Service `kernel:"inject"`
+	queueName *mq.Queue     `kernel:"config,automationQueue"`
+	modelFile *string       `kernel:"config,modelFile"`
+	worker    task.Queue    `kernel:"worker"`
 	mutex     sync.Mutex
 }
 

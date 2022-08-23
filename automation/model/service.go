@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"github.com/peter-mount/go-kernel"
 	"github.com/peter-mount/go-kernel/util/task"
 	"github.com/peter-mount/home-automation/automation/state"
 	automation "github.com/peter-mount/home-automation/util"
@@ -13,7 +14,17 @@ import (
 )
 
 // Service is a Kernel service for managing the House model
-type Service struct {
+type Service interface {
+	LoadModel() error
+	GetModel() *House
+	ScanAutomations(ctx context.Context) error
+}
+
+func init() {
+	kernel.RegisterAPI((*Service)(nil), &service{})
+}
+
+type service struct {
 	modelFile *string               `kernel:"config,modelFile"`
 	states    state.Service         `kernel:"inject"`
 	publisher *automation.Publisher `kernel:"inject"`
@@ -22,11 +33,11 @@ type Service struct {
 	house     *House
 }
 
-func (s *Service) Start() error {
+func (s *service) Start() error {
 	return s.LoadModel()
 }
 
-func (s *Service) LoadModel() error {
+func (s *service) LoadModel() error {
 	f, err := os.Open(*s.modelFile)
 	if err != nil {
 		return err
@@ -53,14 +64,14 @@ func (s *Service) LoadModel() error {
 // GetModel gets the current House instance.
 // Never access house direct, but always via this function as it could be reloaded at any time.
 // It is not safe to cache the instance returned unless it's within the scope of a function.
-func (s *Service) GetModel() *House {
+func (s *service) GetModel() *House {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	return s.house
 }
 
 // ScanAutomations scans all automations within the House for triggered events
-func (s *Service) ScanAutomations(ctx context.Context) error {
+func (s *service) ScanAutomations(ctx context.Context) error {
 	for autoID, auto := range s.GetModel().Automation {
 		if auto.IsTriggered(ctx) {
 			log.Printf("Triggered Automation %q", autoID)
@@ -72,7 +83,7 @@ func (s *Service) ScanAutomations(ctx context.Context) error {
 
 // triggerAutomation is invoked when an Automation has been triggered by an incoming event.
 // Context Keys: "automation" with the *Automation that has been triggered
-func (s *Service) triggerAutomation(ctx context.Context) error {
+func (s *service) triggerAutomation(ctx context.Context) error {
 	auto := ctx.Value("automation").(*Automation)
 
 	for _, action := range auto.Actions {
@@ -83,7 +94,7 @@ func (s *Service) triggerAutomation(ctx context.Context) error {
 }
 
 // runAction is called from triggerAutomation for each action
-func (s *Service) runAction(action *Action) {
+func (s *service) runAction(action *Action) {
 	house := s.GetModel()
 
 	// Activate named scene if it exists
@@ -108,7 +119,7 @@ func (s *Service) runAction(action *Action) {
 	}
 }
 
-func (s *Service) activateDevice(deviceID string, states []*state.State) {
+func (s *service) activateDevice(deviceID string, states []*state.State) {
 	defer func() {
 		_ = recover()
 	}()

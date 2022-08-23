@@ -11,7 +11,7 @@ import (
 type Service struct {
 	mq        *mq.MQ                `kernel:"inject"`
 	publisher *automation.Publisher `kernel:"inject"`
-	house     *model.Service        `kernel:"inject"`
+	house     model.Service         `kernel:"inject"`
 	rest      *rest.Server          `kernel:"inject"`
 	cache     *cache.Cache          `kernel:"inject"`
 }
