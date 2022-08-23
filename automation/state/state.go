@@ -25,13 +25,13 @@ func (s *State) GetString(k string) string {
 }
 
 const (
-	StateKey         = "state"
+	Key              = "state"
 	PreviousStateKey = "previousState"
 	ServiceKey       = "state.service"
 )
 
 func GetState(ctx context.Context) *State {
-	return ctx.Value(StateKey).(*State)
+	return ctx.Value(Key).(*State)
 }
 
 func GetPreviousState(ctx context.Context) *State {

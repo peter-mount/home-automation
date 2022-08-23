@@ -2,7 +2,7 @@ package model
 
 import (
 	"context"
-	state2 "github.com/peter-mount/home-automation/automation/state"
+	"github.com/peter-mount/home-automation/automation/state"
 	"github.com/peter-mount/home-automation/util/mq"
 )
 
@@ -27,7 +27,7 @@ func (t Triggers) IsTriggered(ctx context.Context) bool {
 // IsFired returns true if the context contains data suitable to trigger this trigger
 func (t *Trigger) IsFired(ctx context.Context) bool {
 	msg := mq.Delivery(ctx)
-	if state2.FixKey(msg.RoutingKey) != state2.FixKey(t.Device) {
+	if state.FixKey(msg.RoutingKey) != state.FixKey(t.Device) {
 		return false
 	}
 
@@ -47,10 +47,10 @@ func (t *Trigger) isAction(ctx context.Context) bool {
 
 	r := true
 	if t.From != "" {
-		r = r && state2.GetPreviousState(ctx).GetString("action") == t.From
+		r = r && state.GetPreviousState(ctx).GetString("action") == t.From
 	}
 	if t.To != "" {
-		r = r && state2.GetState(ctx).GetString("action") == t.To
+		r = r && state.GetState(ctx).GetString("action") == t.To
 	}
 	return r
 }
@@ -58,10 +58,10 @@ func (t *Trigger) isAction(ctx context.Context) bool {
 func (t *Trigger) isState(ctx context.Context) bool {
 	r := true
 	if t.From != "" {
-		r = r && state2.GetPreviousState(ctx).GetString("state") == t.From
+		r = r && state.GetPreviousState(ctx).GetString("state") == t.From
 	}
 	if t.To != "" {
-		r = r && state2.GetState(ctx).GetString("state") == t.To
+		r = r && state.GetState(ctx).GetString("state") == t.To
 	}
 	return r
 }
@@ -69,10 +69,10 @@ func (t *Trigger) isState(ctx context.Context) bool {
 func (t *Trigger) test(ctx context.Context, field string) bool {
 	r := true
 	if t.From != "" {
-		r = r && state2.GetPreviousState(ctx).GetString(field) == t.From
+		r = r && state.GetPreviousState(ctx).GetString(field) == t.From
 	}
 	if t.To != "" {
-		r = r && state2.GetState(ctx).GetString(field) == t.To
+		r = r && state.GetState(ctx).GetString(field) == t.To
 	}
 	return r
 }

@@ -3,7 +3,7 @@ package model
 import (
 	"context"
 	"github.com/peter-mount/go-kernel/util/task"
-	state2 "github.com/peter-mount/home-automation/automation/state"
+	"github.com/peter-mount/home-automation/automation/state"
 	automation "github.com/peter-mount/home-automation/util"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -15,7 +15,7 @@ import (
 // Service is a Kernel service for managing the House model
 type Service struct {
 	modelFile *string               `kernel:"config,modelFile"`
-	states    *state2.Service       `kernel:"inject"`
+	states    state.Service         `kernel:"inject"`
 	publisher *automation.Publisher `kernel:"inject"`
 	worker    task.Queue            `kernel:"worker"`
 	mutex     sync.Mutex
@@ -108,7 +108,7 @@ func (s *Service) runAction(action *Action) {
 	}
 }
 
-func (s *Service) activateDevice(deviceID string, states []*state2.State) {
+func (s *Service) activateDevice(deviceID string, states []*state.State) {
 	defer func() {
 		_ = recover()
 	}()
