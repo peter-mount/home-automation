@@ -10,9 +10,9 @@ import (
 )
 
 type Enviro struct {
-	mq        *mq2.MQ            `kernel:"inject"`
-	queueName *mq2.Queue         `kernel:"config,enviroQueue"`
-	graphite  *graphite.Graphite `kernel:"inject"`
+	mq        *mq2.MQ           `kernel:"inject"`
+	queueName *mq2.Queue        `kernel:"config,enviroQueue"`
+	graphite  graphite.Graphite `kernel:"inject"`
 }
 
 func (m *Enviro) Start() error {

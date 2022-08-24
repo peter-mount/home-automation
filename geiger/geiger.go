@@ -11,11 +11,11 @@ import (
 )
 
 type Geiger struct {
-	cron       *cron.CronService  `kernel:"inject"`
-	mq         *mq.MQ             `kernel:"inject"`
-	graphite   *graphite.Graphite `kernel:"inject"`
-	serialPort *string            `kernel:"config,geigerPort"`
-	prefix     *string            `kernel:"config,geigerPrefix"`
+	cron       *cron.CronService `kernel:"inject"`
+	mq         *mq.MQ            `kernel:"inject"`
+	graphite   graphite.Graphite `kernel:"inject"`
+	serialPort *string           `kernel:"config,geigerPort"`
+	prefix     *string           `kernel:"config,geigerPrefix"`
 	port       serial.Port
 }
 

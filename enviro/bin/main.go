@@ -4,14 +4,12 @@ import (
 	"github.com/peter-mount/go-kernel"
 	"github.com/peter-mount/go-kernel/rest"
 	"github.com/peter-mount/home-automation/enviro"
-	"github.com/peter-mount/home-automation/util/graphite"
 	"log"
 )
 
 // main standalone app for developing the graphite population
 func main() {
 	err := kernel.Launch(
-		&graphite.Graphite{},
 		&enviro.Enviro{},
 		&rest.Server{},
 	)

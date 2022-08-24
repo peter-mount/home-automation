@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/peter-mount/go-kernel"
 	mq2 "github.com/peter-mount/home-automation/util/mq"
 	"log"
 	"reflect"
@@ -14,24 +15,31 @@ import (
 
 // Graphite handles receiving events from rabbit and logging the responses to graphite
 // via RabbitMQ.
-type Graphite struct {
+type Graphite interface {
+	Publish(t time.Time, k string, v interface{}) error
+}
+
+func init() {
+	kernel.RegisterAPI((*Graphite)(nil), &graphite{})
+}
+
+type graphite struct {
 	mq        *mq2.MQ        `kernel:"inject"`
 	queueName *mq2.Queue     `kernel:"config,graphiteQueue"`
 	publisher *mq2.Publisher `kernel:"config,graphitePublisher"`
 }
 
-func (m *Graphite) Start() error {
+func (m *graphite) Start() error {
 	err := m.mq.AttachPublisher(m.publisher)
 	/*
 	   if err == nil {
 	     err = m.mq.ConsumeTask(m.queueName, "graphite", mq.Guard(m.logMessage))
-	   }
 	*/
 	return err
 }
 
 // logMessage receives a message from rabbitmq
-func (m *Graphite) logMessage(ctx context.Context) error {
+func (m *graphite) logMessage(ctx context.Context) error {
 	body := mq2.Delivery(ctx)
 
 	// Ignore bridge specific messages as this service deals with devices
@@ -68,7 +76,7 @@ func (m *Graphite) logMessage(ctx context.Context) error {
 	return nil
 }
 
-func (m *Graphite) Publish(t time.Time, k string, v interface{}) error {
+func (m *graphite) Publish(t time.Time, k string, v interface{}) error {
 	var val string
 
 	if v != nil {
