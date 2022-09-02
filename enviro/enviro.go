@@ -6,6 +6,7 @@ import (
 	"github.com/peter-mount/home-automation/util/graphite"
 	mq2 "github.com/peter-mount/home-automation/util/mq"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -40,31 +41,60 @@ func (m *Enviro) consume(ctx context.Context) error {
 	if !ok {
 		return nil
 	}
+	// The old format was "YYYY-MM-DD HH:MM:SS" whilst the new format is correct
+	// So convert the old to new format for timestamp
+	ts = strings.ReplaceAll(ts, " ", "T")
+	if !strings.HasSuffix(ts, "Z") {
+		ts = ts + "Z"
+	}
 
-	t, err := time.Parse("2006-01-02 15:04:05Z", ts+"Z")
+	t, err := time.Parse("2006-01-02T15:04:05Z", ts)
 	if err != nil {
 		return err
 	}
 
-	routingKey := body.RoutingKey
-	for k, v := range data {
-		if !(k == "device" || k == "timestamp") {
+	return m.submitReadings(t, body.RoutingKey, data)
+}
 
-			// TODO convert bool to 0 or 1 - place this in Publish if this works
-			if b, ok := v.(bool); ok {
-				if b {
-					v = 1
-				} else {
-					v = 0
+func (m *Enviro) submitReadings(t time.Time, routingKey string, data map[string]interface{}) error {
+	for k, v := range data {
+		switch k {
+		// Ignore old format keys that are not metrics
+		case "device":
+		case "timestamp":
+			// New format keys to ignore
+		case "nickname":
+		case "model":
+		case "uid":
+		// New format, readings are in this key
+		case "readings":
+			// Recurse if readings is a map
+			if readings, ok := v.(map[string]interface{}); ok {
+				err := m.submitReadings(t, routingKey, readings)
+				if err != nil {
+					return err
 				}
 			}
-
-			err = m.graphite.Publish(t, routingKey+"."+k, v)
+			// Old format, anything else is a metric
+		default:
+			err := m.submitReading(t, routingKey, k, v)
 			if err != nil {
 				return err
 			}
 		}
 	}
-
 	return nil
+}
+
+func (m *Enviro) submitReading(t time.Time, routingKey, k string, v interface{}) error {
+	// Convert a bool type to a 1 or 0 numeric type
+	if b, ok := v.(bool); ok {
+		if b {
+			v = 1
+		} else {
+			v = 0
+		}
+	}
+
+	return m.graphite.Publish(t, routingKey+"."+k, v)
 }
